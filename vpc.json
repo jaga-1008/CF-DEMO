@@ -1,0 +1,106 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "",
+  "Metadata": {},
+  "Parameters": {
+    "vpcCidrBlock": {
+      "Description": "create cidr block for the vpc",
+      "Type": "String",
+      "Default": "10.0.0.0/16"
+    },
+    "subnet1CidrBlock": {
+      "Description": "create cidr block for subnet",
+      "Type": "String"
+    },
+    "AZs": {
+      "Description": "create az for subnet",
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+    }
+  },
+  "Mappings": {},
+  "Conditions": {},
+  "Resources": {
+    "myvpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "vpcCidrBlock"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "myvpc"
+          }
+        ]
+      }
+    },
+    "subnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AZs"
+        },
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "CidrBlock": {
+          "Ref": "subnet1CidrBlock"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "subnet1"
+          }
+        ]
+      }
+    },
+    "IGWdemo": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "IGWdemo"
+          }
+        ]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "IGWdemo"
+        }
+      }
+    },
+    "Rtdemo": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "myvpc"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Rtdemo"
+          }
+        ]
+      }
+    },
+    "myrtasc": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "subnet1"
+        },
+        "RouteTableId": {
+          "Ref": "Rtdemo"
+        }
+      }
+    }
+  },
+  "Outputs": {}
+}

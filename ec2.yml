@@ -1,0 +1,142 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "create a stack for us-east-1"
+Metadata: {}
+Parameters:
+  vpcCidrBlock:
+    Description: create cidr block for the vpc
+    Type: String
+    Default: 10.0.0.0/16
+  subnet1CidrBlock:
+    Description: create cidr block for subnet
+    Type: String
+  AZs:
+    Description: create az for subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+Mappings: {}
+Conditions: {}
+Resources:
+  myinstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: "jaga-test"
+      DisableApiTermination: "false"
+      ImageId: ami-0b5eea76982371e91
+      InstanceType: t2.micro
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          yum install httpd -y
+          echo "<h1> ec2cfdemo </h1>" > /var/www/html/index.html
+          service httpd start
+          chkconfig httpd on
+      SecurityGroupIds:
+        - Ref: demosg
+        - Ref: Apachesg
+
+      SubnetId:
+        Ref: subnet1
+      Tags:
+        - Key: Name
+          Value: myinstance
+          
+  myvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Ref: vpcCidrBlock
+      Tags:
+        - Key: Name
+          Value: myvpc
+  subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Ref: AZs
+      VpcId:
+        Ref: myvpc
+      CidrBlock:
+        Ref: subnet1CidrBlock
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Name
+          Value: subnet1
+  
+  PubIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: PubIGW
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: myvpc
+      InternetGatewayId: 
+        Ref: PubIGW
+
+  PubRt:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: PubRt
+      VpcId: 
+        Ref: myvpc
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+       RouteTableId:
+         Ref: PubRt
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: PubIGW
+  
+  PubRtAsc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: 
+        Ref: PubRt
+      SubnetId: 
+        Ref: subnet1
+        
+  demosg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow http to client host
+      GroupName: demosg-dev
+      VpcId:
+        Ref: myvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: demosg
+  Apachesg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: allow http to client host
+      GroupName: Apachesg-dev
+      VpcId:
+        Ref: myvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: Apachesg
+Outputs: 
+  PublicIp:
+    Description: create a ip for InstanceType
+    Value: ! GetAtt myinstance.PublicIp
+  
+  
+      
+      

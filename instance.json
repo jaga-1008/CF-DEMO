@@ -1,0 +1,101 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Metadata": {},
+    "Parameters": {
+        "vpcCidrBlock": {
+            "Description": "create cidr block for the vpc",
+            "Type": "String",
+            "Default": "10.0.0.0/16"
+          },
+          "subnet1CidrBlock": {
+            "Description": "create cidr block for subnet",
+            "Type": "String"
+          },
+          "AZs": {
+            "Description": "create az for subnet",
+            "Type": "AWS::EC2::AvailabilityZone::Name"
+          }
+    },
+    "Mappings": {},
+    "Conditions": {},
+    "Resources": {
+        "myinstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "KeyName": "jaga-test",
+                "DisableApiTermination": "false",
+                "ImageId": "ami-064d05b4fe8515623",
+                "InstanceType": "t2.micro",
+                "Monitoring": "true",
+                "SecurityGroups": [{"Ref": "demosg"}],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "myinstance"
+                    }
+                ]
+            }
+        },
+        "myvpc": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+              "CidrBlock": {
+                "Ref": "vpcCidrBlock"
+              },
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "myvpc"
+                }
+              ]
+            }
+          },
+          "subnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+              "AvailabilityZone": {
+                "Ref": "AZs"
+              },
+              "VpcId": {
+                "Ref": "myvpc"
+              },
+              "CidrBlock": {
+                "Ref": "subnet1CidrBlock"
+              },
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "subnet1"
+                }
+              ]
+            }
+          },
+        
+        "demosg": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "allow http to client host",
+                "GroupName": "demosg-dev",
+                "VpcId": {
+                    "Ref": "myvpc"
+                 },
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3389,
+                        "ToPort": 3389,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "demosg"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {}
+}
