@@ -133,11 +133,11 @@ Resources:
         - Key: Name
         - Value: Apachesg
 
-  jn-2023-Bucket:
+  JN2025Bucket:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Retain
     Properties:
-      BucketName: jn-2023-Bucket 
+      BucketName: JN2025Bucket
              
 
 Outputs: 
