@@ -131,7 +131,15 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: Apachesg
+        - Value: Apachesg
+
+  jn-2023-Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: jn-2023-Bucket 
+             
+
 Outputs: 
   PublicIp:
     Description: create a ip for InstanceType
